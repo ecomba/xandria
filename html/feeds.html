@@ -1,0 +1,13 @@
+<html>
+  <head><title>Xandria Feeds</title></head>
+  <body>
+    <!-- This form will post to itself -->
+    <form method="post">
+      <input type="text" name = "url"/>
+      <input type="submit" value = "Add new feed">
+    </form>
+    <ul>{% for feed in feeds %}
+    <li>{{ feed.url }}</li>{% endfor %}
+    </ul>
+  </body>
+</html>

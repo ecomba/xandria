@@ -1,5 +1,7 @@
 from google.appengine.ext import db
 from google.appengine.ext import webapp
+from google.appengine.ext.webapp import template
+import os
 
 class Feed(db.Model):
   url = db.StringProperty()
@@ -11,12 +13,18 @@ class Feed(db.Model):
   def findAll():
     return Feed.all().fetch(limit = 1000)
 
-class FeedsPage(webapp.RequestHandler):
+class FeedsHandler(webapp.RequestHandler):
   def get(self):
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write('Welcome to Aggregator')
-
     feeds = Feed.findAll()
-    for feed in feeds:
-      self.response.out.write(feed.url)
-  
+    template_values = {
+      "feeds" : feeds 
+    }
+    
+    path = os.path.join(os.path.dirname(__file__), "html/feeds.html")
+    self.response.out.write(template.render(path, template_values))
+
+  def post(self):
+    feed = Feed(url = self.request.get("url"))
+    feed.save()
+    
+    self.redirect("/feeds")
