@@ -7,4 +7,4 @@ handlers:
 - url: /test.*
   script: gaeunit.py  
 - url: /.*
-  script: feeds.py
+  script: xandria.py
