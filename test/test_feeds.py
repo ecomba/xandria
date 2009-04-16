@@ -3,6 +3,7 @@ from webtest import TestApp
 from google.appengine.ext import webapp
 from feeds import Feed
 from feeds import FeedsHandler
+from feeds import FeedHandler
 
 class FeedUnitTest(unittest.TestCase):
   def setUp(self):
@@ -29,7 +30,21 @@ class FeedUnitTest(unittest.TestCase):
     self.feed.save()
     Feed(url='some.other.url').save()
     self.assertEquals(2, len(Feed.findAll()))
+  
+  def testShouldDeleteAnEntry(self):
+    self.feed.save()
+    self.assertEquals(1, len(Feed.findAll()))
+    self.feed.delete()
+    self.assertEquals(0, len(Feed.findAll()))
+
+  def testShouldFindOneFeed(self):
+    self.feed.save()
+    Feed(url='example.com').save()
+    self.assertEquals('example.com', Feed.find('example.com').url)
     
+  def testShouldReturnNoneWhenThereIsNothingToBeFound(self):
+    self.assertEquals(None, Feed.find('somthing'))
+
 class FeedsHandlerTest(unittest.TestCase):
   def setUp(self):
     self.application = webapp.WSGIApplication([('/feeds', FeedsHandler)],debug=True)
@@ -50,3 +65,22 @@ class FeedsHandlerTest(unittest.TestCase):
     postResponse = app.post('/feeds?url=example.com')
     response = postResponse.follow()
     self.assertTrue('<li>example.com</li>' in response)
+    
+class FeedHanderTest(unittest.TestCase):
+  def setUp(self):
+    self.application = webapp.WSGIApplication([('/feeds/.*', FeedHandler)],debug=True)
+
+  def testShouldBeStatus200(self):
+    app = TestApp(self.application)
+    feed = Feed(url = 'example.com')
+    feed.save
+    response = app.get("/feeds/example.com")
+    self.assertEquals('200 OK', response.status)
+    
+  def testShouldDisplayTheFeed(self):
+    app = TestApp(self.application)
+    feed = Feed(url = 'example.com')
+    feed.save()
+    
+    response = app.get("/feeds/example.com")
+    self.assertTrue('example.com' in response)
