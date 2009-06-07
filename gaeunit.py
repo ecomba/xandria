@@ -24,7 +24,7 @@ Usage:
 Visit http://code.google.com/p/gaeunit for more information and updates.
 
 ------------------------------------------------------------------------------
-Copyright (c) 2008, George Lei and Steven R. Farley.  All rights reserved.
+Copyright (c) 2008-2009, George Lei and Steven R. Farley.  All rights reserved.
 
 Distributed under the following BSD license:
 
@@ -53,8 +53,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 __author__ = "George Lei and Steven R. Farley"
 __email__ = "George.Z.Lei@Gmail.com"
-__version__ = "#Revision: 1.2.6 $"[11:-2]
-__copyright__= "Copyright (c) 2008, George Lei and Steven R. Farley"
+__version__ = "#Revision: 1.2.8 $"[11:-2]
+__copyright__= "Copyright (c) 2008-2009, George Lei and Steven R. Farley"
 __license__ = "BSD"
 __url__ = "http://code.google.com/p/gaeunit"
 
@@ -236,7 +236,7 @@ def _create_suite(request):
 def _load_default_test_modules():
     if not _LOCAL_TEST_DIR in sys.path:
         sys.path.append(_LOCAL_TEST_DIR)
-        module_names = [mf[0:-3] for mf in os.listdir(_LOCAL_TEST_DIR) if mf.endswith(".py")]
+    module_names = [mf[0:-3] for mf in os.listdir(_LOCAL_TEST_DIR) if mf.endswith(".py")]
     return [reload(__import__(name)) for name in module_names]
 
 
@@ -287,7 +287,7 @@ def _run_test_suite(runner, suite):
     original_apiproxy = apiproxy_stub_map.apiproxy
     try:
        apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap() 
-       temp_stub = datastore_file_stub.DatastoreFileStub('GAEUnitDataStore', None, None)  
+       temp_stub = datastore_file_stub.DatastoreFileStub('GAEUnitDataStore', None, None, trusted=True)  
        apiproxy_stub_map.apiproxy.RegisterStub('datastore', temp_stub)
        # Allow the other services to be used as-is for tests.
        for name in ['user', 'urlfetch', 'mail', 'memcache', 'images']: 
@@ -443,7 +443,7 @@ _MAIN_PAGE_CONTENT = """
             for the latest version or to report problems.
         </p>
         <p>
-            Copyright 2008 <a href="mailto:George.Z.Lei@Gmail.com">George Lei</a>
+            Copyright 2008-2009 <a href="mailto:George.Z.Lei@Gmail.com">George Lei</a>
             and <a href="mailto:srfarley@gmail.com>Steven R. Farley</a>
         </p>
         </div>

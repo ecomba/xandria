@@ -1,14 +1,18 @@
 <html>
   <head><title>Xandria Feeds</title></head>
   <body>
+    {% if error %}
+      <h2>{{ error }}</h2>
+    {% endif %}
     <!-- This form will post to itself -->
     <form method="post">
-      <input type="text" name = "url"/>
-      <input type="submit" value = "Add new feed"/>
+      <input type="text" name="url"/>
+      <input type="submit" value="Add new feed"/>
     </form>
     <ul>{% for feed in feeds %}
-      <form method="delete">
-        <li>{{ feed.url }}</li>{% endfor %}
+      <form action="/feeds/{{ feed.url }}" method="post">
+        <input type="hidden" name="_method" value="delete"/>
+        <li><a href="/feeds/{{ feed.url }}">{{ feed.url }}</a><input type="submit" value="delete"></li>{% endfor %}
     </ul>
   </body>
 </html>

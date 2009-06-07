@@ -3,7 +3,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from feeds import FeedHandler
 from feeds import FeedsHandler
 
-application = webapp.WSGIApplication([('/feeds', FeedsHandler),
+application = webapp.WSGIApplication([('^/feeds/?$', FeedsHandler),
                                       ('/feeds/.*', FeedHandler)], debug=True)
 
 def main():

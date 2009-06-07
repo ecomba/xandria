@@ -25,7 +25,12 @@ class Feed(db.Model):
     
 class FeedsHandler(webapp.RequestHandler):
   def get(self):
+    error = None
+    if self.request.get("error") == 'no_url':
+      error = 'No url provided!'
+      
     template_values = {
+      "error" : error,
       "feeds" : Feed.findAll()
     }
     
@@ -33,19 +38,32 @@ class FeedsHandler(webapp.RequestHandler):
     self.response.out.write(template.render(path, template_values))
 
   def post(self):
-    feed = Feed(url = self.request.get("url"))
-    feed.save()
-    
-    self.redirect("/feeds")
+    url = self.request.get("url")
+    if url == '':
+      self.redirect("/feeds?error=no_url")
+    else:
+      feed = Feed(url = url)
+      feed.save()
+      self.redirect("/feeds")
+
     
 class FeedHandler(webapp.RequestHandler):
   """Handles the requestst to a single Feed"""
   def get(self):
     path = self.request.path
+
     template_values = {
       "feed" : Feed.find(path.replace('/feeds/', ''))
+
     }
     
     path = os.path.join(os.path.dirname(__file__), "html/feed.html")
     self.response.out.write(template.render(path, template_values))
-  
+
+  def post(self):
+    method = self.request.get("_method")
+    if method == "delete":
+      path = self.request.path
+      Feed.find(path.replace('/feeds/', '')).delete()
+      self.redirect("/feeds")
+    pass

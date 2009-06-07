@@ -47,8 +47,17 @@ class FeedUnitTest(unittest.TestCase):
 
 class FeedsHandlerTest(unittest.TestCase):
   def setUp(self):
-    self.application = webapp.WSGIApplication([('/feeds', FeedsHandler)],debug=True)
+    self.application = webapp.WSGIApplication([('^/feeds/?$', FeedsHandler),
+                                               ('/feeds/.*', FeedHandler)], debug=True)
+
+  def assertContains(self, itemToLookFor, itemToSearch):
+    def escapeHtml(string):
+      return string.replace("<", "&lt;")
     
+    escapedItemToLookFor = escapeHtml(itemToLookFor)
+    escapedItemToSearch = escapeHtml(str(itemToSearch))
+    self.assertTrue(itemToLookFor in itemToSearch, "%s did not contain %s" % (escapedItemToSearch, escapedItemToLookFor))
+
   def testShouldBeStatus200(self):
     app = TestApp(self.application)
     response = app.get('/feeds')
@@ -57,18 +66,25 @@ class FeedsHandlerTest(unittest.TestCase):
   def testShouldHaveAForm(self):
     app = TestApp(self.application)
     response = app.get('/feeds')
-    self.assertTrue('<form method="post">' in response)
-    self.assertTrue('<input type="text" name = "url"/>' in response)
-    
+    self.assertContains('<form method="post">', response)
+    self.assertContains('<input type="text" name="url"/>', response)
+
   def testShouldAddFeedToList(self):
     app = TestApp(self.application)
     postResponse = app.post('/feeds?url=example.com')
     response = postResponse.follow()
-    self.assertTrue('<li>example.com</li>' in response)
+    self.assertContains('<li><a href="/feeds/example.com">example.com</a>', response)
+
+  def testShouldNotAllowAnEmptyUrl(self):
+    app = TestApp(self.application)
+    postResponse = app.post('/feeds?url=')
+    response = postResponse.follow()
+    self.assertContains('No url provided!', response)
     
 class FeedHanderTest(unittest.TestCase):
   def setUp(self):
-    self.application = webapp.WSGIApplication([('/feeds/.*', FeedHandler)],debug=True)
+    self.application = webapp.WSGIApplication([('^/feeds/?$', FeedsHandler),
+                                               ('/feeds/.*', FeedHandler)], debug=True)
 
   def testShouldBeStatus200(self):
     app = TestApp(self.application)
@@ -83,4 +99,12 @@ class FeedHanderTest(unittest.TestCase):
     feed.save()
     
     response = app.get("/feeds/example.com")
-    self.assertTrue('example.com' in response)
+    self.assertTrue('<h1>example.com</h1>' in response)
+    
+  def testShouldDeleteAFeed(self):
+    app = TestApp(self.application)
+    addFeed = app.post('/feeds?url=example.com')
+    deleteResponse = app.post('/feeds/example.com?_method=delete')
+    response = deleteResponse.follow()
+    self.assertFalse('example.com' in response)
+    
